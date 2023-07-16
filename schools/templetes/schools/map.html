@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>School Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 500px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([0, 0], 10);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        var schoolsLayer = L.geoJSON(null, {
+            onEachFeature: function(feature, layer) {
+                layer.bindPopup(feature.properties.SCHOOL_NAM);
+            }
+        }).addTo(map);
+
+        function updateSchools() {
+            var county = document.getElementById('county').value;
+            var schoolName = document.getElementById('school_name').value;
+            var district = document.getElementById('district').value;
+
+            var url = '/schools/?county=' + county + '&school_name=' + schoolName + '&district=' + district;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    schoolsLayer.clearLayers();
+                    schoolsLayer.addData(data);
+                });
+        }
+
+        document.getElementById('county').addEventListener('change', updateSchools);
+        document.getElementById('school_name').addEventListener('input', updateSchools);
+        document.getElementById('district').addEventListener('change', updateSchools);
+
+        updateSchools();
+    </script>
+</body>
+</html>
